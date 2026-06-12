@@ -1,0 +1,51 @@
+@{
+    Layout = "_Layout";
+    ViewBag.Titulo = "Cadastro de Medicamento";
+}
+
+@model CadastrarMedicamentoViewModel;
+
+@if (Model.Fornecedores.Count == 0)
+{
+    <div class="alert alert-primary border-start border-primary border-4 rounded-3 mx-auto" style="max-width: 620px;" role="alert">
+        Cadastre um fornecedor antes de cadastrar medicamentos.
+    </div>
+}
+
+<form class="card border-primary-subtle shadow-sm mx-auto p-4" style="max-width: 620px;" asp-action="Cadastrar" method="post">
+    <div class="mb-3">
+        <label asp-for="Nome" class="form-label fw-semibold text-primary text-uppercase small">Nome</label>
+        <input asp-for="Nome" type="text" class="form-control">
+        <span asp-validation-for="Nome" class="text-danger small fw-semibold"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Descricao" class="form-label fw-semibold text-primary text-uppercase small">Descricao</label>
+        <textarea asp-for="Descricao" class="form-control" rows="3"></textarea>
+        <span asp-validation-for="Descricao" class="text-danger small fw-semibold"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="FornecedorId" class="form-label fw-semibold text-primary text-uppercase small">Fornecedor</label>
+        <select asp-for="FornecedorId" class="form-select">
+            <option value="">Selecione um fornecedor</option>
+            @foreach (OpcaoFornecedorViewModel fornecedor in Model.Fornecedores)
+            {
+                <option value="@fornecedor.Id">@fornecedor.Nome</option>
+            }
+        </select>
+        <span asp-validation-for="FornecedorId" class="text-danger small fw-semibold"></span>
+    </div>
+
+    <div class="d-flex justify-content-end gap-2 mt-4">
+        <a class="btn btn-outline-primary rounded-pill px-4" asp-action="Listar">Voltar</a>
+        @if (Model.Fornecedores.Count == 0)
+        {
+            <button class="btn btn-primary rounded-pill px-4" type="submit" disabled>Confirmar</button>
+        }
+        else
+        {
+            <button class="btn btn-primary rounded-pill px-4" type="submit">Confirmar</button>
+        }
+    </div>
+</form>
