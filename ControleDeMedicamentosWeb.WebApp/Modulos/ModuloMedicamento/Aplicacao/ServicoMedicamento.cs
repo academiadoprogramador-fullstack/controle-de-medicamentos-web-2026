@@ -95,6 +95,7 @@ public class ServicoMedicamento
                 m.Id,
                 m.Nome,
                 m.Descricao,
+                m.QuantidadeEmEstoque,
                 m.Fornecedor.Id,
                 m.Fornecedor.Nome
             ))
@@ -112,6 +113,7 @@ public class ServicoMedicamento
             medicamento.Id,
             medicamento.Nome,
             medicamento.Descricao,
+            medicamento.QuantidadeEmEstoque,
             medicamento.Fornecedor.Id,
             medicamento.Fornecedor.Nome
         ));

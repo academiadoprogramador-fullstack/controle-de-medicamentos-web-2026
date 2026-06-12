@@ -1,0 +1,57 @@
+@{
+    Layout = "_Layout";
+    ViewBag.Titulo = "Requisicao de Entrada";
+}
+
+@model RegistrarEntradaViewModel;
+
+@if (Model.Funcionarios.Count == 0)
+{
+    <div class="alert alert-primary border-start border-primary border-4 rounded-3 mx-auto" style="max-width: 720px;" role="alert">
+        Cadastre um funcionario antes de registrar entradas.
+    </div>
+}
+
+<form class="card border-primary-subtle shadow-sm mx-auto p-4" style="max-width: 720px;" asp-action="RegistrarEntrada" method="post">
+    <input asp-for="MedicamentoId" type="hidden">
+    <input asp-for="MedicamentoNome" type="hidden">
+    <input asp-for="MedicamentoDescricao" type="hidden">
+    <input asp-for="FornecedorNome" type="hidden">
+    <input asp-for="QuantidadeEmEstoque" type="hidden">
+
+    <div class="alert alert-primary border-start border-primary border-4 rounded-3" role="alert">
+        <div class="fw-semibold">@Model.MedicamentoNome</div>
+        <div>@Model.MedicamentoDescricao</div>
+        <div class="small">Fornecedor: @Model.FornecedorNome | Estoque atual: @Model.QuantidadeEmEstoque</div>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="FuncionarioId" class="form-label fw-semibold text-primary text-uppercase small">Funcionario</label>
+        <select asp-for="FuncionarioId" class="form-select">
+            <option value="">Selecione um funcionario</option>
+            @foreach (OpcaoFuncionarioViewModel funcionario in Model.Funcionarios)
+            {
+                <option value="@funcionario.Id">@funcionario.Nome</option>
+            }
+        </select>
+        <span asp-validation-for="FuncionarioId" class="text-danger small fw-semibold"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Quantidade" class="form-label fw-semibold text-primary text-uppercase small">Quantidade</label>
+        <input asp-for="Quantidade" type="number" min="1" step="1" class="form-control">
+        <span asp-validation-for="Quantidade" class="text-danger small fw-semibold"></span>
+    </div>
+
+    <div class="d-flex justify-content-end gap-2 mt-4">
+        <a class="btn btn-outline-primary rounded-pill px-4" asp-controller="Medicamento" asp-action="Listar">Voltar</a>
+        @if (Model.Funcionarios.Count == 0)
+        {
+            <button class="btn btn-primary rounded-pill px-4" type="submit" disabled>Confirmar</button>
+        }
+        else
+        {
+            <button class="btn btn-primary rounded-pill px-4" type="submit">Confirmar</button>
+        }
+    </div>
+</form>

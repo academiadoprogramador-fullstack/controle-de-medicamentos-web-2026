@@ -9,6 +9,7 @@ public record ListarMedicamentosDto(
     Guid Id,
     string Nome,
     string Descricao,
+    uint QuantidadeEmEstoque,
     Guid FornecedorId,
     string FornecedorNome
 );
@@ -30,6 +31,7 @@ public record DetalhesMedicamentoDto(
     Guid Id,
     string Nome,
     string Descricao,
+    uint QuantidadeEmEstoque,
     Guid FornecedorId,
     string FornecedorNome
 );

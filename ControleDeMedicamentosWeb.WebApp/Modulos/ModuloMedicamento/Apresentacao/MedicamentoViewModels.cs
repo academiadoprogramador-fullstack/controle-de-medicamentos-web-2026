@@ -12,6 +12,7 @@ public record ListarMedicamentosViewModel(
     Guid Id,
     string Nome,
     string Descricao,
+    uint QuantidadeEmEstoque,
     Guid FornecedorId,
     string FornecedorNome
 );
@@ -54,6 +55,7 @@ public record ExcluirMedicamentoViewModel(
     Guid Id,
     string Nome,
     string Descricao,
+    uint QuantidadeEmEstoque,
     Guid FornecedorId,
     string FornecedorNome
 );

@@ -1,4 +1,5 @@
 using ControleDeMedicamentosWeb.WebApp.Compartilhado.Dominio;
+using ControleDeMedicamentosWeb.WebApp.Modulos.ModuloEstoque.Dominio;
 using ControleDeMedicamentosWeb.WebApp.Modulos.ModuloFornecedor.Dominio;
 
 namespace ControleDeMedicamentosWeb.WebApp.Modulos.ModuloMedicamento.Dominio;
@@ -8,6 +9,31 @@ public class Medicamento : EntidadeBase<Medicamento>
     public string Nome { get; set; } = string.Empty;
     public string Descricao { get; set; } = string.Empty;
     public Fornecedor Fornecedor { get; set; } = null!;
+    public List<RequisicaoBase> Requisicoes { get; set; } = new List<RequisicaoBase>();
+    public uint QuantidadeEmEstoque
+    {
+        get
+        {
+            long quantidadeEmEstoque = 0;
+
+            foreach (RequisicaoBase req in Requisicoes)
+            {
+                if (req is RequisicaoEntrada reqEntrada)
+                    quantidadeEmEstoque += reqEntrada.Quantidade;
+
+                else if (req is RequisicaoSaida reqSaida)
+                {
+                    foreach (MedicamentoPrescrito medPresc in reqSaida.MedicamentosPrescritos)
+                    {
+                        if (medPresc.Medicamento.Id == Id)
+                            quantidadeEmEstoque -= medPresc.Quantidade;
+                    }
+                }
+            }
+
+            return quantidadeEmEstoque > 0 ? (uint)quantidadeEmEstoque : 0;
+        }
+    }
 
     public Medicamento()
     {
@@ -18,6 +44,11 @@ public class Medicamento : EntidadeBase<Medicamento>
         Nome = nome;
         Descricao = descricao;
         Fornecedor = fornecedor;
+    }
+
+    public void RegistrarRequisicao(RequisicaoBase requisicao)
+    {
+        Requisicoes.Add(requisicao);
     }
 
     public override List<string> Validar()
