@@ -12,7 +12,7 @@ public sealed class RepositorioMedicamentoEmSql(ISqlConnectionFactory connection
     private const string InserirMedicamentoSql = """
         INSERT INTO dbo.TBMedicamento (Id, Nome, Descricao, FornecedorId)
         VALUES (@Id, @Nome, @Descricao, @FornecedorId);
-        """;
+    """;
 
     private const string AtualizarMedicamentoSql = """
         UPDATE dbo.TBMedicamento
@@ -20,7 +20,7 @@ public sealed class RepositorioMedicamentoEmSql(ISqlConnectionFactory connection
             Descricao = @Descricao,
             FornecedorId = @FornecedorId
         WHERE Id = @Id;
-        """;
+    """;
 
     private const string ExcluirMedicamentoSql = """
         DELETE FROM dbo.TBMedicamento

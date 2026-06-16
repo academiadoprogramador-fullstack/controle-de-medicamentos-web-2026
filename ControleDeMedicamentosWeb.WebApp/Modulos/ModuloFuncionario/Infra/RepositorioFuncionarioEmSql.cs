@@ -11,7 +11,7 @@ public sealed class RepositorioFuncionarioEmSql(ISqlConnectionFactory connection
     private const string InserirSql = """
         INSERT INTO dbo.TBFuncionario (Id, Nome, Telefone, Cpf)
         VALUES (@Id, @Nome, @Telefone, @Cpf);
-        """;
+    """;
 
     private const string AtualizarSql = """
         UPDATE dbo.TBFuncionario
@@ -19,24 +19,24 @@ public sealed class RepositorioFuncionarioEmSql(ISqlConnectionFactory connection
             Telefone = @Telefone,
             Cpf = @Cpf
         WHERE Id = @Id;
-        """;
+    """;
 
     private const string ExcluirSql = """
         DELETE FROM dbo.TBFuncionario
         WHERE Id = @Id;
-        """;
+    """;
 
     private const string SelecionarTodosSql = """
         SELECT Id, Nome, Telefone, Cpf
         FROM dbo.TBFuncionario
         ORDER BY Nome;
-        """;
+    """;
 
     private const string SelecionarPorIdSql = """
         SELECT Id, Nome, Telefone, Cpf
         FROM dbo.TBFuncionario
         WHERE Id = @Id;
-        """;
+    """;
 
     public void Cadastrar(Funcionario entidade)
     {
