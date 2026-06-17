@@ -28,7 +28,7 @@ public static class InjecaoDependencia
 
         services.AddScoped<ISqlConnectionFactory, SqlConnectionFactory>();
 
-        services.AddScoped<IRepositorioRequisicao, RepositorioRequisicaoEmArquivo>();
+        services.AddScoped<IRepositorioRequisicao, RepositorioRequisicaoEmSql>();
         services.AddScoped<IRepositorioFornecedor, RepositorioFornecedorEmSql>();
         services.AddScoped<IRepositorioFuncionario, RepositorioFuncionarioEmSql>();
         services.AddScoped<IRepositorioMedicamento, RepositorioMedicamentoEmSql>();
