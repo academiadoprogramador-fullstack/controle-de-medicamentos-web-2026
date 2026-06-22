@@ -1,0 +1,21 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "sqlproj: Build ControleDeMedicamentosWeb.Database",
+			"type": "process",
+			"command": "dotnet",
+			"args": [
+				"build",
+				"f:/.trabalho/academia-2026/full-stack/ControleDeMedicamentosWeb/ControleDeMedicamentosWeb.Database/ControleDeMedicamentosWeb.Database.sqlproj"
+			],
+			"problemMatcher": "$sqlproj-problem-matcher",
+			"isBackground": true,
+			"group": {
+				"kind": "build",
+				"isDefault": false
+			},
+			"detail": "Builds the ControleDeMedicamentosWeb.Database SQL project"
+		}
+	]
+}
