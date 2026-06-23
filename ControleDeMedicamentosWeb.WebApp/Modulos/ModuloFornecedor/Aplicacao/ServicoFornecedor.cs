@@ -6,16 +6,25 @@ namespace ControleDeMedicamentosWeb.WebApp.Modulos.ModuloFornecedor.Aplicacao;
 public class ServicoFornecedor
 {
     private readonly IRepositorioFornecedor repositorioFornecedor;
+    private readonly ILogger<ServicoFornecedor> logger;
 
-    public ServicoFornecedor(IRepositorioFornecedor repositorioFornecedor)
+    public ServicoFornecedor(
+        IRepositorioFornecedor repositorioFornecedor,
+        ILogger<ServicoFornecedor> logger
+    )
     {
         this.repositorioFornecedor = repositorioFornecedor;
+        this.logger = logger;
     }
 
     public Result Cadastrar(CadastrarFornecedorDto dto)
     {
         if (ExisteFornecedorComCnpj(dto.Cnpj))
+        {
+            logger.LogWarning("Cadastro de fornecedor recusado por CNPJ duplicado.");
+
             return Falha(nameof(dto.Cnpj), "Ja existe um fornecedor com este CNPJ.");
+        }
 
         Fornecedor novoFornecedor = new Fornecedor(dto.Nome, dto.Telefone, dto.Cnpj);
 
@@ -26,13 +35,25 @@ public class ServicoFornecedor
 
         repositorioFornecedor.Cadastrar(novoFornecedor);
 
+        logger.LogInformation(
+            "Fornecedor cadastrado. FornecedorId: {FornecedorId}",
+            novoFornecedor.Id
+        );
+
         return Result.Ok();
     }
 
     public Result Editar(EditarFornecedorDto dto)
     {
         if (ExisteFornecedorComCnpj(dto.Cnpj, dto.Id))
+        {
+            logger.LogWarning(
+                "Edição de fornecedor recusada por CNPJ duplicado. FornecedorId: {FornecedorId}",
+                dto.Id
+            );
+
             return Falha(nameof(dto.Cnpj), "Ja existe um fornecedor com este CNPJ.");
+        }
 
         Fornecedor fornecedorAtualizado = new Fornecedor(dto.Nome, dto.Telefone, dto.Cnpj);
 
@@ -44,7 +65,19 @@ public class ServicoFornecedor
         bool conseguiuEditar = repositorioFornecedor.Editar(dto.Id, fornecedorAtualizado);
 
         if (!conseguiuEditar)
+        {
+            logger.LogWarning(
+                "Edição de fornecedor recusada porque o registro não foi encontrado. FornecedorId: {FornecedorId}",
+                dto.Id
+            );
+
             return Result.Fail("Fornecedor nao encontrado.");
+        }
+
+        logger.LogInformation(
+            "Fornecedor editado. FornecedorId: {FornecedorId}",
+            dto.Id
+        );
 
         return Result.Ok();
     }
@@ -54,9 +87,18 @@ public class ServicoFornecedor
         Fornecedor? fornecedor = repositorioFornecedor.SelecionarPorId(id);
 
         if (fornecedor == null)
+        {
+            logger.LogWarning(
+                "Exclusão de fornecedor recusada porque o registro não foi encontrado. FornecedorId: {FornecedorId}",
+                id
+            );
+
             return Result.Fail("Fornecedor nao encontrado.");
+        }
 
         repositorioFornecedor.Excluir(id);
+
+        logger.LogInformation("Fornecedor excluído. FornecedorId: {FornecedorId}", id);
 
         return Result.Ok();
     }
@@ -74,7 +116,14 @@ public class ServicoFornecedor
         Fornecedor? fornecedor = repositorioFornecedor.SelecionarPorId(id);
 
         if (fornecedor == null)
+        {
+            logger.LogDebug(
+                "Fornecedor não encontrado durante consulta. FornecedorId: {FornecedorId}",
+                id
+            );
+
             return Result.Fail("Fornecedor nao encontrado.");
+        }
 
         return Result.Ok(new DetalhesFornecedorDto(
             fornecedor.Id,

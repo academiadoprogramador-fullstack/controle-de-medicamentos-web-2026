@@ -6,16 +6,25 @@ namespace ControleDeMedicamentosWeb.WebApp.Modulos.ModuloPaciente.Aplicacao;
 public class ServicoPaciente
 {
     private readonly IRepositorioPaciente repositorioPaciente;
+    private readonly ILogger<ServicoPaciente> logger;
 
-    public ServicoPaciente(IRepositorioPaciente repositorioPaciente)
+    public ServicoPaciente(
+        IRepositorioPaciente repositorioPaciente,
+        ILogger<ServicoPaciente> logger
+    )
     {
         this.repositorioPaciente = repositorioPaciente;
+        this.logger = logger;
     }
 
     public Result Cadastrar(CadastrarPacienteDto dto)
     {
         if (ExistePacienteComCartaoSus(dto.CartaoSus))
+        {
+            logger.LogWarning("Cadastro de paciente recusado por cartão SUS duplicado.");
+
             return Falha(nameof(dto.CartaoSus), "Ja existe um paciente com este cartao SUS.");
+        }
 
         Paciente novoPaciente = new Paciente(dto.Nome, dto.Telefone, dto.Cpf, dto.CartaoSus);
 
@@ -26,13 +35,25 @@ public class ServicoPaciente
 
         repositorioPaciente.Cadastrar(novoPaciente);
 
+        logger.LogInformation(
+            "Paciente cadastrado. PacienteId: {PacienteId}",
+            novoPaciente.Id
+        );
+
         return Result.Ok();
     }
 
     public Result Editar(EditarPacienteDto dto)
     {
         if (ExistePacienteComCartaoSus(dto.CartaoSus, dto.Id))
+        {
+            logger.LogWarning(
+                "Edição de paciente recusada por cartão SUS duplicado. PacienteId: {PacienteId}",
+                dto.Id
+            );
+
             return Falha(nameof(dto.CartaoSus), "Ja existe um paciente com este cartao SUS.");
+        }
 
         Paciente pacienteAtualizado = new Paciente(dto.Nome, dto.Telefone, dto.Cpf, dto.CartaoSus);
 
@@ -44,7 +65,16 @@ public class ServicoPaciente
         bool conseguiuEditar = repositorioPaciente.Editar(dto.Id, pacienteAtualizado);
 
         if (!conseguiuEditar)
+        {
+            logger.LogWarning(
+                "Edição de paciente recusada porque o registro não foi encontrado. PacienteId: {PacienteId}",
+                dto.Id
+            );
+
             return Result.Fail("Paciente nao encontrado.");
+        }
+
+        logger.LogInformation("Paciente editado. PacienteId: {PacienteId}", dto.Id);
 
         return Result.Ok();
     }
@@ -54,9 +84,18 @@ public class ServicoPaciente
         Paciente? paciente = repositorioPaciente.SelecionarPorId(id);
 
         if (paciente == null)
+        {
+            logger.LogWarning(
+                "Exclusão de paciente recusada porque o registro não foi encontrado. PacienteId: {PacienteId}",
+                id
+            );
+
             return Result.Fail("Paciente nao encontrado.");
+        }
 
         repositorioPaciente.Excluir(id);
+
+        logger.LogInformation("Paciente excluído. PacienteId: {PacienteId}", id);
 
         return Result.Ok();
     }
@@ -74,7 +113,14 @@ public class ServicoPaciente
         Paciente? paciente = repositorioPaciente.SelecionarPorId(id);
 
         if (paciente == null)
+        {
+            logger.LogDebug(
+                "Paciente não encontrado durante consulta. PacienteId: {PacienteId}",
+                id
+            );
+
             return Result.Fail("Paciente nao encontrado.");
+        }
 
         return Result.Ok(new DetalhesPacienteDto(
             paciente.Id,

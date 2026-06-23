@@ -6,16 +6,25 @@ namespace ControleDeMedicamentosWeb.WebApp.Modulos.ModuloFuncionario.Aplicacao;
 public class ServicoFuncionario
 {
     private readonly IRepositorioFuncionario repositorioFuncionario;
+    private readonly ILogger<ServicoFuncionario> logger;
 
-    public ServicoFuncionario(IRepositorioFuncionario repositorioFuncionario)
+    public ServicoFuncionario(
+        IRepositorioFuncionario repositorioFuncionario,
+        ILogger<ServicoFuncionario> logger
+    )
     {
         this.repositorioFuncionario = repositorioFuncionario;
+        this.logger = logger;
     }
 
     public Result Cadastrar(CadastrarFuncionarioDto dto)
     {
         if (ExisteFuncionarioComCpf(dto.Cpf))
+        {
+            logger.LogWarning("Cadastro de funcionário recusado por CPF duplicado.");
+
             return Falha(nameof(dto.Cpf), "Ja existe um funcionario com este CPF.");
+        }
 
         Funcionario novoFuncionario = new Funcionario(dto.Nome, dto.Telefone, dto.Cpf);
 
@@ -26,13 +35,25 @@ public class ServicoFuncionario
 
         repositorioFuncionario.Cadastrar(novoFuncionario);
 
+        logger.LogInformation(
+            "Funcionário cadastrado. FuncionarioId: {FuncionarioId}",
+            novoFuncionario.Id
+        );
+
         return Result.Ok();
     }
 
     public Result Editar(EditarFuncionarioDto dto)
     {
         if (ExisteFuncionarioComCpf(dto.Cpf, dto.Id))
+        {
+            logger.LogWarning(
+                "Edição de funcionário recusada por CPF duplicado. FuncionarioId: {FuncionarioId}",
+                dto.Id
+            );
+
             return Falha(nameof(dto.Cpf), "Ja existe um funcionario com este CPF.");
+        }
 
         Funcionario funcionarioAtualizado = new Funcionario(dto.Nome, dto.Telefone, dto.Cpf);
 
@@ -44,7 +65,19 @@ public class ServicoFuncionario
         bool conseguiuEditar = repositorioFuncionario.Editar(dto.Id, funcionarioAtualizado);
 
         if (!conseguiuEditar)
+        {
+            logger.LogWarning(
+                "Edição de funcionário recusada porque o registro não foi encontrado. FuncionarioId: {FuncionarioId}",
+                dto.Id
+            );
+
             return Result.Fail("Funcionario nao encontrado.");
+        }
+
+        logger.LogInformation(
+            "Funcionário editado. FuncionarioId: {FuncionarioId}",
+            dto.Id
+        );
 
         return Result.Ok();
     }
@@ -54,9 +87,18 @@ public class ServicoFuncionario
         Funcionario? funcionario = repositorioFuncionario.SelecionarPorId(id);
 
         if (funcionario == null)
+        {
+            logger.LogWarning(
+                "Exclusão de funcionário recusada porque o registro não foi encontrado. FuncionarioId: {FuncionarioId}",
+                id
+            );
+
             return Result.Fail("Funcionario nao encontrado.");
+        }
 
         repositorioFuncionario.Excluir(id);
+
+        logger.LogInformation("Funcionário excluído. FuncionarioId: {FuncionarioId}", id);
 
         return Result.Ok();
     }
@@ -74,7 +116,14 @@ public class ServicoFuncionario
         Funcionario? funcionario = repositorioFuncionario.SelecionarPorId(id);
 
         if (funcionario == null)
+        {
+            logger.LogDebug(
+                "Funcionário não encontrado durante consulta. FuncionarioId: {FuncionarioId}",
+                id
+            );
+
             return Result.Fail("Funcionario nao encontrado.");
+        }
 
         return Result.Ok(new DetalhesFuncionarioDto(
             funcionario.Id,

@@ -10,7 +10,7 @@ if (builder.Environment.IsProduction())
 }
 
 // Configuração de Dependências (Dependency Injection)
-builder.Services.AddInfraRepositories();
+builder.Services.AddInfraRepositories(builder.Configuration, builder.Logging);
 
 builder.Services.AddApplicationServices();
 

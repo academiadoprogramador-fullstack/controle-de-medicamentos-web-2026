@@ -8,14 +8,17 @@ public class ServicoMedicamento
 {
     private readonly IRepositorioMedicamento repositorioMedicamento;
     private readonly IRepositorioFornecedor repositorioFornecedor;
+    private readonly ILogger<ServicoMedicamento> logger;
 
     public ServicoMedicamento(
         IRepositorioMedicamento repositorioMedicamento,
-        IRepositorioFornecedor repositorioFornecedor
+        IRepositorioFornecedor repositorioFornecedor,
+        ILogger<ServicoMedicamento> logger
     )
     {
         this.repositorioMedicamento = repositorioMedicamento;
         this.repositorioFornecedor = repositorioFornecedor;
+        this.logger = logger;
     }
 
     public Result Cadastrar(CadastrarMedicamentoDto dto)
@@ -23,10 +26,24 @@ public class ServicoMedicamento
         Fornecedor? fornecedorSelecionado = repositorioFornecedor.SelecionarPorId(dto.FornecedorId);
 
         if (fornecedorSelecionado == null)
+        {
+            logger.LogWarning(
+                "Cadastro de medicamento recusado porque o fornecedor não foi encontrado. FornecedorId: {FornecedorId}",
+                dto.FornecedorId
+            );
+
             return Falha(nameof(dto.FornecedorId), "Selecione um fornecedor valido.");
+        }
 
         if (ExisteMedicamentoComMesmoNomeNoFornecedor(dto.Nome, dto.FornecedorId))
+        {
+            logger.LogWarning(
+                "Cadastro de medicamento recusado por nome duplicado no fornecedor. FornecedorId: {FornecedorId}",
+                dto.FornecedorId
+            );
+
             return Falha(nameof(dto.Nome), "Ja existe um medicamento com este nome neste fornecedor.");
+        }
 
         Medicamento novoMedicamento = new Medicamento(
             dto.Nome,
@@ -41,6 +58,12 @@ public class ServicoMedicamento
 
         repositorioMedicamento.Cadastrar(novoMedicamento);
 
+        logger.LogInformation(
+            "Medicamento cadastrado. MedicamentoId: {MedicamentoId}, FornecedorId: {FornecedorId}",
+            novoMedicamento.Id,
+            fornecedorSelecionado.Id
+        );
+
         return Result.Ok();
     }
 
@@ -49,15 +72,38 @@ public class ServicoMedicamento
         Medicamento? medicamento = repositorioMedicamento.SelecionarPorId(dto.Id);
 
         if (medicamento == null)
+        {
+            logger.LogWarning(
+                "Edição de medicamento recusada porque o registro não foi encontrado. MedicamentoId: {MedicamentoId}",
+                dto.Id
+            );
+
             return Result.Fail("Medicamento nao encontrado.");
+        }
 
         Fornecedor? fornecedorSelecionado = repositorioFornecedor.SelecionarPorId(dto.FornecedorId);
 
         if (fornecedorSelecionado == null)
+        {
+            logger.LogWarning(
+                "Edição de medicamento recusada porque o fornecedor não foi encontrado. MedicamentoId: {MedicamentoId}, FornecedorId: {FornecedorId}",
+                dto.Id,
+                dto.FornecedorId
+            );
+
             return Falha(nameof(dto.FornecedorId), "Selecione um fornecedor valido.");
+        }
 
         if (ExisteMedicamentoComMesmoNomeNoFornecedor(dto.Nome, dto.FornecedorId, dto.Id))
+        {
+            logger.LogWarning(
+                "Edição de medicamento recusada por nome duplicado no fornecedor. MedicamentoId: {MedicamentoId}, FornecedorId: {FornecedorId}",
+                dto.Id,
+                dto.FornecedorId
+            );
+
             return Falha(nameof(dto.Nome), "Ja existe um medicamento com este nome neste fornecedor.");
+        }
 
         Medicamento medicamentoAtualizado = new Medicamento(
             dto.Nome,
@@ -70,7 +116,23 @@ public class ServicoMedicamento
         if (resultadoValidacao.IsFailed)
             return resultadoValidacao;
 
-        repositorioMedicamento.Editar(dto.Id, medicamentoAtualizado);
+        bool conseguiuEditar = repositorioMedicamento.Editar(dto.Id, medicamentoAtualizado);
+
+        if (!conseguiuEditar)
+        {
+            logger.LogWarning(
+                "Edição de medicamento não persistida. MedicamentoId: {MedicamentoId}",
+                dto.Id
+            );
+
+            return Result.Fail("Medicamento nao encontrado.");
+        }
+
+        logger.LogInformation(
+            "Medicamento editado. MedicamentoId: {MedicamentoId}, FornecedorId: {FornecedorId}",
+            dto.Id,
+            fornecedorSelecionado.Id
+        );
 
         return Result.Ok();
     }
@@ -80,9 +142,28 @@ public class ServicoMedicamento
         Medicamento? medicamento = repositorioMedicamento.SelecionarPorId(id);
 
         if (medicamento == null)
-            return Result.Fail("Medicamento nao encontrado.");
+        {
+            logger.LogWarning(
+                "Exclusão de medicamento recusada porque o registro não foi encontrado. MedicamentoId: {MedicamentoId}",
+                id
+            );
 
-        repositorioMedicamento.Excluir(id);
+            return Result.Fail("Medicamento nao encontrado.");
+        }
+
+        bool conseguiuExcluir = repositorioMedicamento.Excluir(id);
+
+        if (!conseguiuExcluir)
+        {
+            logger.LogWarning(
+                "Exclusão de medicamento não persistida. MedicamentoId: {MedicamentoId}",
+                id
+            );
+
+            return Result.Fail("Medicamento nao encontrado.");
+        }
+
+        logger.LogInformation("Medicamento excluído. MedicamentoId: {MedicamentoId}", id);
 
         return Result.Ok();
     }
@@ -107,7 +188,14 @@ public class ServicoMedicamento
         Medicamento? medicamento = repositorioMedicamento.SelecionarPorId(id);
 
         if (medicamento == null)
+        {
+            logger.LogDebug(
+                "Medicamento não encontrado durante consulta. MedicamentoId: {MedicamentoId}",
+                id
+            );
+
             return Result.Fail("Medicamento nao encontrado.");
+        }
 
         return Result.Ok(new DetalhesMedicamentoDto(
             medicamento.Id,

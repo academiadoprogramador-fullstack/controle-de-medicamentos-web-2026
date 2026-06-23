@@ -12,18 +12,21 @@ public class ServicoEstoque
     private readonly IRepositorioMedicamento repositorioMedicamento;
     private readonly IRepositorioFuncionario repositorioFuncionario;
     private readonly IRepositorioPaciente repositorioPaciente;
+    private readonly ILogger<ServicoEstoque> logger;
 
     public ServicoEstoque(
         IRepositorioRequisicao repositorioRequisicao,
         IRepositorioMedicamento repositorioMedicamento,
         IRepositorioFuncionario repositorioFuncionario,
-        IRepositorioPaciente repositorioPaciente
+        IRepositorioPaciente repositorioPaciente,
+        ILogger<ServicoEstoque> logger
     )
     {
         this.repositorioRequisicao = repositorioRequisicao;
         this.repositorioMedicamento = repositorioMedicamento;
         this.repositorioFuncionario = repositorioFuncionario;
         this.repositorioPaciente = repositorioPaciente;
+        this.logger = logger;
     }
 
     public Result RegistrarEntrada(RegistrarEntradaDto dto)
@@ -31,12 +34,27 @@ public class ServicoEstoque
         Medicamento? medicamento = repositorioMedicamento.SelecionarPorId(dto.MedicamentoId);
 
         if (medicamento == null)
+        {
+            logger.LogWarning(
+                "Entrada de estoque recusada porque o medicamento não foi encontrado. MedicamentoId: {MedicamentoId}",
+                dto.MedicamentoId
+            );
+
             return Result.Fail("Medicamento nao encontrado.");
+        }
 
         Funcionario? funcionario = repositorioFuncionario.SelecionarPorId(dto.FuncionarioId);
 
         if (funcionario == null)
+        {
+            logger.LogWarning(
+                "Entrada de estoque recusada porque o funcionário não foi encontrado. MedicamentoId: {MedicamentoId}, FuncionarioId: {FuncionarioId}",
+                dto.MedicamentoId,
+                dto.FuncionarioId
+            );
+
             return Falha(nameof(dto.FuncionarioId), "Selecione um funcionario valido.");
+        }
 
         if (dto.Quantidade == 0)
             return Falha(nameof(dto.Quantidade), "A quantidade deve ser maior que zero.");
@@ -44,6 +62,14 @@ public class ServicoEstoque
         RequisicaoEntrada requisicaoEntrada = new RequisicaoEntrada(funcionario, medicamento, dto.Quantidade);
 
         repositorioRequisicao.Cadastrar(requisicaoEntrada);
+
+        logger.LogInformation(
+            "Entrada de estoque registrada. RequisicaoId: {RequisicaoId}, MedicamentoId: {MedicamentoId}, FuncionarioId: {FuncionarioId}, Quantidade: {Quantidade}",
+            requisicaoEntrada.Id,
+            medicamento.Id,
+            funcionario.Id,
+            dto.Quantidade
+        );
 
         return Result.Ok();
     }
@@ -53,23 +79,55 @@ public class ServicoEstoque
         Medicamento? medicamento = repositorioMedicamento.SelecionarPorId(dto.MedicamentoId);
 
         if (medicamento == null)
+        {
+            logger.LogWarning(
+                "Saída de estoque recusada porque o medicamento não foi encontrado. MedicamentoId: {MedicamentoId}",
+                dto.MedicamentoId
+            );
+
             return Result.Fail("Medicamento nao encontrado.");
+        }
 
         Paciente? paciente = repositorioPaciente.SelecionarPorId(dto.PacienteId);
 
         if (paciente == null)
+        {
+            logger.LogWarning(
+                "Saída de estoque recusada porque o paciente não foi encontrado. MedicamentoId: {MedicamentoId}, PacienteId: {PacienteId}",
+                dto.MedicamentoId,
+                dto.PacienteId
+            );
+
             return Falha(nameof(dto.PacienteId), "Selecione um paciente valido.");
+        }
 
         if (dto.Quantidade == 0)
             return Falha(nameof(dto.Quantidade), "A quantidade deve ser maior que zero.");
 
         if (dto.Quantidade > medicamento.QuantidadeEmEstoque)
+        {
+            logger.LogWarning(
+                "Saída de estoque recusada por saldo insuficiente. MedicamentoId: {MedicamentoId}, QuantidadeSolicitada: {QuantidadeSolicitada}, QuantidadeDisponivel: {QuantidadeDisponivel}",
+                medicamento.Id,
+                dto.Quantidade,
+                medicamento.QuantidadeEmEstoque
+            );
+
             return Falha(nameof(dto.Quantidade), "A quantidade solicitada excede o estoque disponivel.");
+        }
 
         MedicamentoPrescrito medicamentoPrescrito = new MedicamentoPrescrito(medicamento, dto.Quantidade);
         RequisicaoSaida requisicaoSaida = new RequisicaoSaida(paciente, [medicamentoPrescrito]);
 
         repositorioRequisicao.Cadastrar(requisicaoSaida);
+
+        logger.LogInformation(
+            "Saída de estoque registrada. RequisicaoId: {RequisicaoId}, MedicamentoId: {MedicamentoId}, PacienteId: {PacienteId}, Quantidade: {Quantidade}",
+            requisicaoSaida.Id,
+            medicamento.Id,
+            paciente.Id,
+            dto.Quantidade
+        );
 
         return Result.Ok();
     }
@@ -79,7 +137,14 @@ public class ServicoEstoque
         Medicamento? medicamento = repositorioMedicamento.SelecionarPorId(medicamentoId);
 
         if (medicamento == null)
+        {
+            logger.LogDebug(
+                "Medicamento não encontrado durante consulta de estoque. MedicamentoId: {MedicamentoId}",
+                medicamentoId
+            );
+
             return Result.Fail("Medicamento nao encontrado.");
+        }
 
         return Result.Ok(new DetalhesEstoqueMedicamentoDto(
             medicamento.Id,
