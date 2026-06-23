@@ -1,6 +1,6 @@
 using Serilog;
 
-namespace ControleDeMedicamentosWeb.WebApp.Compartilhado.Infra.Logging;
+namespace ControleDeMedicamentosWeb.WebApp.Compartilhado.Aplicacao.Logging;
 
 public static class SerilogLoggerFactory
 {

@@ -1,5 +1,4 @@
 using ControleDeMedicamentosWeb.WebApp.Compartilhado.Infra.Arquivos;
-using ControleDeMedicamentosWeb.WebApp.Compartilhado.Infra.Logging;
 using ControleDeMedicamentosWeb.WebApp.Compartilhado.Infra.Sql;
 using ControleDeMedicamentosWeb.WebApp.Modulos.ModuloEstoque.Dominio;
 using ControleDeMedicamentosWeb.WebApp.Modulos.ModuloEstoque.Infra;
@@ -16,14 +15,8 @@ namespace ControleDeMedicamentosWeb.WebApp.Compartilhado.Infra;
 
 public static class InjecaoDependencia
 {
-    public static void AddInfraRepositories(
-        this IServiceCollection services,
-        IConfiguration configuration,
-        ILoggingBuilder logging
-    )
+    public static void AddInfraRepositories(this IServiceCollection services)
     {
-        services.AddSerilogLogger(configuration, logging);
-
         services.AddScoped(provider =>
         {
             ContextoJson contextoJson = new ContextoJson();

@@ -2,22 +2,23 @@ using Serilog;
 using Serilog.Core;
 using Serilog.Events;
 
-namespace ControleDeMedicamentosWeb.WebApp.Compartilhado.Infra.Logging;
+namespace ControleDeMedicamentosWeb.WebApp.Compartilhado.Aplicacao.Logging;
 
 public static class SerilogFactory
 {
     public static Logger Create(IConfiguration configuration)
     {
-        string caminhoAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        IConfigurationSection newRelicSection = configuration.GetSection(NewRelicOptions.SectionName);
 
-        string caminhoArquivoLogs = Path.Combine(
-            caminhoAppData,
-            "ControleDeMedicamentosWeb",
-            "erros.log"
-        );
+        NewRelicOptions newRelicOptions = newRelicSection.Get<NewRelicOptions>() ?? new NewRelicOptions();
+
+        string caminhoAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        string caminhoArquivoLogs = Path.Combine(caminhoAppData, "ControleDeMedicamentosWeb", "erros.log");
 
         LoggerConfiguration loggerConfiguration = new LoggerConfiguration()
             .MinimumLevel.Information()
+            .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+            .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
             .Enrich.FromLogContext()
             .WriteTo.Console()
             .WriteTo.File(
@@ -26,9 +27,10 @@ public static class SerilogFactory
                 restrictedToMinimumLevel: LogEventLevel.Error
             );
 
-        NewRelicOptions newRelicOptions = configuration
-            .GetSection(NewRelicOptions.SectionName)
-            .Get<NewRelicOptions>() ?? new NewRelicOptions();
+        bool deveEnviarParaNewRelic = newRelicSection.Exists() && newRelicOptions.Enabled;
+
+        if (!deveEnviarParaNewRelic)
+            return loggerConfiguration.CreateLogger();
 
         string? licenseKey = newRelicOptions.LicenseKey ?? configuration["NEWRELIC_LICENSE_KEY"];
 
