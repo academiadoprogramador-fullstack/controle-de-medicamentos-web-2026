@@ -26,6 +26,9 @@ jobs:
       - name: Build with dotnet
         run: dotnet build --configuration Release
 
+      - name: Build database project
+        run: dotnet build ControleDeMedicamentosWeb.Database/ControleDeMedicamentosWeb.Database.sqlproj --configuration Release
+
       - name: dotnet publish
         run: dotnet publish -c Release -o "${{env.DOTNET_ROOT}}/myapp"
 
@@ -34,6 +37,12 @@ jobs:
         with:
           name: .net-app
           path: ${{env.DOTNET_ROOT}}/myapp
+
+      - name: Upload database artifact for deployment job
+        uses: actions/upload-artifact@v4
+        with:
+          name: database-dacpac
+          path: ControleDeMedicamentosWeb.Database/bin/Release/ControleDeMedicamentosWeb.Database.dacpac
 
   deploy:
     runs-on: windows-latest
@@ -47,13 +56,27 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: .net-app
-      
+
+      - name: Download database artifact from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: database-dacpac
+          path: database
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_ACC27C8186A9449C973E2066F378C61C }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_C92E88B920CC48B292B1E5570CDBDBCF }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_8BADE6A77B9644888D69C434F2D47681 }}
+
+      - name: Deploy database schema
+        uses: azure/sql-action@v2.3
+        with:
+          connection-string: ${{ secrets.AZURE_SQL_CONNECTION_STRING }}
+          path: database/ControleDeMedicamentosWeb.Database.dacpac
+          action: Publish
+          arguments: /p:BlockOnPossibleDataLoss=true
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
@@ -62,4 +85,3 @@ jobs:
           app-name: 'controle-de-medicamentos-web'
           slot-name: 'Production'
           package: .
-          
