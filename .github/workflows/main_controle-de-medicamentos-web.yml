@@ -78,6 +78,20 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_C92E88B920CC48B292B1E5570CDBDBCF }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_8BADE6A77B9644888D69C434F2D47681 }}
 
+      # Configuração das variáveis de ambiente do Azure Web App
+      - name: Configure Azure Web App settings
+        uses: azure/cli@v2
+        with:
+          inlineScript: |
+            az webapp config appsettings set \
+              --resource-group "controle-de-medicamentos-web" \
+              --name "controle-de-medicamentos-web" \
+              --settings \
+                "ASPNETCORE_ENVIRONMENT=Production" \
+                "ConnectionStrings__SqlServer=${{ secrets.AZURE_SQL_CONNECTION_STRING }}" \
+                "NewRelic__LicenseKey=${{ secrets.NEWRELIC_LICENSE_KEY }}" \
+                "AutoMapper__LicenseKey=${{ secrets.AUTOMAPPER_LICENSE_KEY }}"
+
       # Publicação do artefato do database project
       - name: Deploy database schema
         uses: azure/sql-action@v2.3
