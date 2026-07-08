@@ -2,7 +2,6 @@ using ControleDeMedicamentosWeb.WebApp.Compartilhado.Aplicacao;
 using ControleDeMedicamentosWeb.WebApp.Compartilhado.Apresentacao;
 using ControleDeMedicamentosWeb.WebApp.Compartilhado.Infra;
 using ControleDeMedicamentosWeb.WebApp.Compartilhado.Infra.Sql;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
