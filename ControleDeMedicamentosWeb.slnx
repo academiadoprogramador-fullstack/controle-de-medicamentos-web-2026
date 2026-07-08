@@ -1,3 +1,6 @@
 <Solution>
+  <Project Path="ControleDeMedicamentosWeb.Aplicacao/ControleDeMedicamentosWeb.Aplicacao.csproj" />
+  <Project Path="ControleDeMedicamentosWeb.Dominio/ControleDeMedicamentosWeb.Dominio.csproj" />
+  <Project Path="ControleDeMedicamentosWeb.Infra/ControleDeMedicamentosWeb.Infra.csproj" />
   <Project Path="ControleDeMedicamentosWeb.WebApp/ControleDeMedicamentosWeb.WebApp.csproj" />
 </Solution>
