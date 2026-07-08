@@ -1,9 +1,9 @@
+using ControleDeMedicamentosWeb.Aplicacao.Modulos.ModuloEstoque;
+using ControleDeMedicamentosWeb.Aplicacao.Modulos.ModuloFornecedor;
+using ControleDeMedicamentosWeb.Aplicacao.Modulos.ModuloFuncionario;
+using ControleDeMedicamentosWeb.Aplicacao.Modulos.ModuloMedicamento;
+using ControleDeMedicamentosWeb.Aplicacao.Modulos.ModuloPaciente;
 using ControleDeMedicamentosWeb.WebApp.Compartilhado.Aplicacao.Logging;
-using ControleDeMedicamentosWeb.WebApp.Modulos.ModuloEstoque.Aplicacao;
-using ControleDeMedicamentosWeb.WebApp.Modulos.ModuloFornecedor.Aplicacao;
-using ControleDeMedicamentosWeb.WebApp.Modulos.ModuloFuncionario.Aplicacao;
-using ControleDeMedicamentosWeb.WebApp.Modulos.ModuloMedicamento.Aplicacao;
-using ControleDeMedicamentosWeb.WebApp.Modulos.ModuloPaciente.Aplicacao;
 
 namespace ControleDeMedicamentosWeb.WebApp.Compartilhado.Aplicacao;
 
